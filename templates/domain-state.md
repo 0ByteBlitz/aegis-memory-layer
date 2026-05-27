@@ -1,12 +1,10 @@
 ---
-domain: example-domain
-status: active
-owner: team-or-person
-last_updated: YYYY-MM-DD
-last_verified_against_code: YYYY-MM-DD
+record_type: state
+id: example-domain-state
 valid_as_of_commit: COMMIT_SHA
-confidence: medium
-review_status: current / needs-review / stale
+depends_on:
+  - path/to/domain/
+trust: verified
 ---
 
 # Domain State
