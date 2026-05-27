@@ -1,3 +1,12 @@
+---
+record_type: state
+id: working-state
+valid_as_of_commit: COMMIT_SHA
+depends_on:
+  - src/
+trust: assumed
+---
+
 # Working State
 
 ## Branch Context
