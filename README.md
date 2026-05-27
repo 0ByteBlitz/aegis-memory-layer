@@ -1,8 +1,8 @@
-# Aegis Memory Layer
+# Plumblines
 
 **A structured project-memory framework for AI coding agents.**
 
-Aegis Memory Layer helps AI coding agents preserve project context, record changes, separate verified facts from assumptions, and avoid stale or unsafe modifications.
+Plumblines helps AI coding agents preserve project context, record changes, separate verified facts from assumptions, and avoid stale or unsafe modifications.
 
 It creates a lightweight memory system inside a project using a `.agent_files/` directory. The goal is to make agents smoother, safer, and more consistent when working across multiple coding iterations.
 
@@ -12,7 +12,7 @@ It creates a lightweight memory system inside a project using a `.agent_files/` 
 
 AI coding agents often struggle with continuity. They may forget previous decisions, repeat work, misread architecture, or confidently act on stale assumptions.
 
-Aegis Memory Layer gives agents a clear place to read and write project context:
+Plumblines gives agents a clear place to read and write project context:
 
 - current project state
 - architecture and design notes
@@ -29,7 +29,7 @@ The framework is useful for solo projects, agent-heavy development workflows, an
 
 ## Core idea
 
-Aegis is not a replacement for your codebase, tests, pull requests, or official documentation.
+Plumblines is not a replacement for your codebase, tests, pull requests, or official documentation.
 
 It is an **agent coordination layer**.
 
@@ -158,7 +158,7 @@ Keep temporary agent state local:
 
 ### 1. Code is the final truth
 
-Aegis helps agents understand the project faster, but it must never replace reading the actual code.
+Plumblines helps agents understand the project faster, but it must never replace reading the actual code.
 
 ### 2. Memory must be labelled
 
@@ -233,7 +233,7 @@ templates/
 ## Suggested agent instruction
 
 ```txt
-Before changing this codebase, read `.agent_files/AGENT_RULES.md`, `.agent_files/CONTEXT_PRIORITY.md`, `.agent_files/PROJECT_STATE.md`, and any relevant domain state. After making changes, create a new change record under `.agent_files/local/changes/` using the Aegis Memory Layer templates.
+Before changing this codebase, read `.agent_files/AGENT_RULES.md`, `.agent_files/CONTEXT_PRIORITY.md`, `.agent_files/PROJECT_STATE.md`, and any relevant domain state. After making changes, create a new change record under `.agent_files/local/changes/` using the Plumblines templates.
 ```
 
 ---
