@@ -8,8 +8,17 @@ Branch:
 Base branch:
 Ticket:
 Pull request:
-Commit range:
 Domain:
+
+## Validity
+
+Base commit:
+Result commit:
+Valid as of commit:
+
+## Touched Files
+
+- `path/to/file`
 
 ## Goal
 
@@ -33,9 +42,31 @@ Describe previous behaviour.
 
 Describe new behaviour.
 
+## Inputs Used
+
+| Input | Type | Trust Level | Evidence |
+|---|---|---|---|
+| `path/to/file` | source code | source-truth | Inspected directly |
+| `PROJECT_STATE.md` | memory | verified / inferred / stale | valid as of commit |
+
+## Assumptions Used
+
+- Assumption one
+
+## Validation Summary
+
+Link to `validation.md` or summarise validation performed.
+
 ## State Update Needed?
 
 - [ ] No
 - [ ] Yes, update project or domain state
 - [ ] Yes, update official docs
 - [ ] Yes, create an architecture decision record
+
+## Completion Check
+
+- [ ] Change record filled in
+- [ ] Validation recorded
+- [ ] Risks recorded
+- [ ] Follow-ups recorded
