@@ -1,11 +1,10 @@
 ---
-status: active
-owner: project
-last_updated: YYYY-MM-DD
-last_verified_against_code: YYYY-MM-DD
+record_type: state
+id: project-state
 valid_as_of_commit: COMMIT_SHA
-confidence: medium
-review_status: current / needs-review / stale
+depends_on:
+  - src/
+trust: verified
 ---
 
 # Project State
