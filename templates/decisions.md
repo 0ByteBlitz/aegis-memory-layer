@@ -1,3 +1,17 @@
+---
+record_type: decision
+id: YYYY-MM-DD-decision-slug
+valid_as_of_commit: COMMIT_SHA
+depends_on:
+  - path/to/file
+trust: inferred
+provenance:
+  - { source: path/to/file, trust: inferred }
+validation: none
+risks: see-body
+followups: see-body
+---
+
 # Decisions
 
 ## Decision 1
