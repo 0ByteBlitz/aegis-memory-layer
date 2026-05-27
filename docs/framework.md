@@ -1,6 +1,6 @@
-# Aegis Memory Layer Framework
+# Plumblines Framework
 
-Aegis Memory Layer is a structured project-memory framework for AI coding agents.
+Plumblines is a structured project-memory framework for AI coding agents.
 
 It gives agents a reliable place to read and write project context without turning temporary notes into the source of truth.
 
@@ -8,7 +8,7 @@ It gives agents a reliable place to read and write project context without turni
 
 ## Purpose
 
-Aegis helps agents answer:
+Plumblines helps agents answer:
 
 - What is this project?
 - What architecture and design rules should I follow?
@@ -264,7 +264,7 @@ Every decision or important observation should be labelled as one of:
 
 ## Handling private or sensitive context
 
-Do not store private credentials, tokens, customer information, or production-only details in Aegis files. Use placeholders such as `<TOKEN>`, `<CUSTOMER_ID>`, or `<INTERNAL_URL>`.
+Do not store private credentials, tokens, customer information, or production-only details in Plumblines files. Use placeholders such as `<TOKEN>`, `<CUSTOMER_ID>`, or `<INTERNAL_URL>`.
 
 ---
 
@@ -296,4 +296,4 @@ After compaction, update `PROJECT_STATE.md` or the relevant domain `STATE.md`.
 
 ## Final reminder
 
-Aegis Memory Layer should help agents understand the project faster, but it must never replace reading the actual code.
+Plumblines should help agents understand the project faster, but it must never replace reading the actual code.
