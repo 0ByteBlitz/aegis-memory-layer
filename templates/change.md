@@ -1,3 +1,17 @@
+---
+record_type: change
+id: YYYY-MM-DD-short-description
+valid_as_of_commit: COMMIT_SHA
+depends_on:
+  - path/to/file
+trust: verified
+provenance:
+  - { source: path/to/file, trust: verified }
+validation: none
+risks: see-body
+followups: see-body
+---
+
 # Change Record
 
 ## Metadata
