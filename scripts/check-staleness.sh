@@ -1,63 +1,42 @@
 #!/usr/bin/env bash
+# check-staleness.sh — flag records whose dependencies moved since their commit.
+# Usage: scripts/check-staleness.sh
+# Exit:  0 nothing stale, 1 stale found, 2 not a git repo.
+
 set -euo pipefail
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=plumblines-lib.sh
+source "$HERE/plumblines-lib.sh"
 
-ROOT="${1:-.agent_files}"
+AGENT_DIR="${PLUMBLINES_DIR:-.agent_files}"
+git rev-parse --git-dir >/dev/null 2>&1 || { echo "not a git repo"; exit 2; }
 
-if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-  echo "Not inside a git repository."
+stale=0
+echo "Staleness scan (depends_on changed since valid_as_of_commit)"
+
+while IFS= read -r rec; do
+  sha="$(pl_field "$rec" valid_as_of_commit || true)"
+  [ -n "$sha" ] || continue
+  full="$(git rev-parse --verify --quiet "${sha}^{commit}" 2>/dev/null || true)"
+  if [ -z "$full" ]; then
+    printf '  ? %s — valid_as_of_commit %s not found in history\n' "$rec" "$sha"
+    stale=1; continue
+  fi
+  mapfile -t deps < <(pl_list "$rec" depends_on)
+  [ "${#deps[@]}" -eq 0 ] && continue
+  changed="$(git diff --name-only "${full}..HEAD" -- "${deps[@]}" 2>/dev/null || true)"
+  if [ -n "$changed" ]; then
+    trust="$(pl_field "$rec" trust || echo '?')"
+    printf '  ! %s (trust=%s) — dependencies changed since %s:\n' \
+      "$rec" "$trust" "$(git rev-parse --short "$full")"
+    while IFS= read -r f; do printf '      %s\n' "$f"; done <<< "$changed"
+    stale=1
+  fi
+done < <(pl_records "$AGENT_DIR")
+
+if [ "$stale" -ne 0 ]; then
+  echo
+  echo "Review the records above and re-label as needs-review or update them."
   exit 1
 fi
-
-if [ ! -d "$ROOT" ]; then
-  echo "No $ROOT directory found."
-  exit 0
-fi
-
-found=0
-
-while IFS= read -r file; do
-  commit="$(grep -E '^valid_as_of_commit:' "$file" | head -n 1 | sed 's/^valid_as_of_commit:[[:space:]]*//')"
-
-  if [ -z "$commit" ] || [ "$commit" = "COMMIT_SHA" ]; then
-    continue
-  fi
-
-  if ! git cat-file -e "$commit^{commit}" 2>/dev/null; then
-    echo "Needs review: $file"
-    echo "  Reason: valid_as_of_commit does not exist in this repository: $commit"
-    found=1
-    continue
-  fi
-
-  changed="$(git diff --name-only "$commit"..HEAD || true)"
-
-  if [ -z "$changed" ]; then
-    continue
-  fi
-
-  dependencies="$(awk '
-    /^## Files This State Depends On/ {flag=1; next}
-    /^## / && flag {flag=0}
-    flag && /^- / {gsub(/^- /, ""); gsub(/`/, ""); print}
-    /^## Touched Files/ {flag2=1; next}
-    /^## / && flag2 {flag2=0}
-    flag2 && /^- / {gsub(/^- /, ""); gsub(/`/, ""); print}
-  ' "$file")"
-
-  if [ -z "$dependencies" ]; then
-    continue
-  fi
-
-  while IFS= read -r dep; do
-    [ -z "$dep" ] && continue
-    if echo "$changed" | grep -qx "$dep"; then
-      echo "Needs review: $file"
-      echo "  Reason: $dep changed after $commit"
-      found=1
-    fi
-  done <<< "$dependencies"
-done < <(find "$ROOT" -type f -name '*.md')
-
-if [ "$found" -eq 0 ]; then
-  echo "No stale Plumblines records detected."
-fi
+echo "  ok — no stale records detected."
