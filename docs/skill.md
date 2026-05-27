@@ -6,7 +6,7 @@ Use `.agent_files` as a structured memory layer for coding-agent work.
 
 ## Purpose
 
-Plumblines helps agents understand a project, preserve context, record changes, separate verified facts from assumptions, and avoid repeated or unsafe modifications.
+Plumblines helps agents understand a project, preserve context, record changes, separate verified facts from assumptions, detect stale project memory, and avoid repeated or unsafe modifications.
 
 ---
 
@@ -30,16 +30,38 @@ When sources conflict, trust them in this order:
 
 ---
 
+## Loading policy
+
+Do not load every memory file by default.
+
+Always read:
+
+1. `AGENT_RULES.md`
+2. `CONTEXT_PRIORITY.md`
+3. `LOADING_POLICY.md` if present
+4. `PROJECT_STATE.md` or the relevant domain `STATE.md`
+5. The actual source files involved in the task
+
+Read only when relevant:
+
+- domain-specific state
+- latest change record for the touched domain
+- compacted summaries for the touched domain
+- design notes for UI work
+- API contract notes for API work
+- decision logs for refactors or architecture work
+
+Do not auto-load unrelated domains, old change records, archived compactions, or scratch files from unrelated branches.
+
+---
+
 ## Before modifying code
 
 1. Check whether `.agent_files` exists.
-2. Read `AGENT_RULES.md`.
-3. Read `CONTEXT_PRIORITY.md`.
-4. Read `PROJECT_STATE.md` or the relevant domain `STATE.md`.
-5. Read `WORKING_STATE.md` if present.
-6. Read the latest relevant change record or compacted summary.
-7. Inspect the actual code before editing.
-8. Treat unverified or stale notes as hints only.
+2. Apply the loading policy.
+3. Inspect the actual code before editing.
+4. Treat unverified or stale notes as hints only.
+5. Check whether relevant memory has `valid_as_of_commit` metadata.
 
 ---
 
@@ -57,7 +79,7 @@ When sources conflict, trust them in this order:
 
 ## After modifying code
 
-Create a new change record under `.agent_files/local/changes/`.
+Create or update a change record under `.agent_files/local/changes/`.
 
 Use a timestamp or ticket-based folder name:
 
@@ -79,6 +101,13 @@ Include:
 - `risks.md`
 - `followups.md`
 
+Also include when possible:
+
+- `valid_as_of_commit`
+- touched files
+- provenance inputs
+- assumptions used
+
 The change record must document:
 
 - goal
@@ -93,6 +122,18 @@ The change record must document:
 
 ---
 
+## Completion gate
+
+A task that changes code or durable project documentation is not complete until one of these is true:
+
+1. A new change record exists and includes validation, risks, follow-ups, touched files, and commit validity metadata.
+2. An existing change record was updated with the same information.
+3. No change record was needed because no files were changed.
+
+Do not present the task as complete before satisfying this gate.
+
+---
+
 ## Decision labelling
 
 Every decision or important observation must be labelled as one of:
@@ -102,6 +143,39 @@ Every decision or important observation must be labelled as one of:
 - `agent-assumption`
 - `temporary`
 - `needs-review`
+
+Do not present assumptions as approved decisions.
+
+---
+
+## Provenance
+
+When making or recording an important decision, record what the decision was based on.
+
+Track:
+
+- source files inspected
+- state files used
+- tickets or human instructions used
+- assumptions used
+- evidence not checked
+- confidence level
+
+If a decision depends on an assumption, mark that decision as lower confidence or `needs-review`.
+
+---
+
+## Staleness
+
+State files and change records should include:
+
+```txt
+valid_as_of_commit: COMMIT_SHA
+```
+
+They should also list files they depend on or touched files.
+
+If a related file changed after `valid_as_of_commit`, treat the memory record as `needs-review` until checked again.
 
 ---
 
