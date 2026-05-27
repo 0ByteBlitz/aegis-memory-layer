@@ -3,7 +3,9 @@ status: active
 owner: project
 last_updated: YYYY-MM-DD
 last_verified_against_code: YYYY-MM-DD
+valid_as_of_commit: COMMIT_SHA
 confidence: medium
+review_status: current / needs-review / stale
 ---
 
 # Project State
@@ -35,9 +37,15 @@ Describe the current architecture.
 
 ## Stable Decisions
 
-| Decision | Status | Evidence |
-|---|---|---|
-| Example decision | verified | `path/to/file.ts` |
+| Decision | Status | Evidence | Valid As Of |
+|---|---|---|---|
+| Example decision | verified | `path/to/file.ts` | commit SHA |
+
+## Inferred Observations
+
+| Observation | Evidence | Confidence | Needs Review |
+|---|---|---|---|
+| Example observation | `path/to/file.ts` | medium | no |
 
 ## Current Priorities
 
@@ -61,3 +69,11 @@ Describe the current architecture.
 - Database schema
 - Shared design primitives
 - Deployment configuration
+
+## Files This State Depends On
+
+- `path/to/file`
+
+## Review Notes
+
+Use this section when a related source file changes after `valid_as_of_commit`.
