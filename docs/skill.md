@@ -1,4 +1,4 @@
-# Skill: Aegis Memory Layer
+# Skill: Plumblines
 
 Use `.agent_files` as a structured memory layer for coding-agent work.
 
@@ -6,7 +6,7 @@ Use `.agent_files` as a structured memory layer for coding-agent work.
 
 ## Purpose
 
-The Aegis Memory Layer helps agents understand a project, preserve context, record changes, separate verified facts from assumptions, and avoid repeated or unsafe modifications.
+Plumblines helps agents understand a project, preserve context, record changes, separate verified facts from assumptions, and avoid repeated or unsafe modifications.
 
 ---
 
