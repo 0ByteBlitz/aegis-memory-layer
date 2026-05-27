@@ -1,6 +1,6 @@
 # Plumblines Framework
 
-Plumblines is a structured project-memory framework for AI coding agents.
+Plumblines is a plain-Markdown project continuity framework for AI coding agents.
 
 It gives agents a reliable place to read and write project context without turning temporary notes into the source of truth.
 
@@ -16,6 +16,7 @@ Plumblines helps agents answer:
 - What is currently being worked on?
 - Which decisions are verified?
 - Which assumptions need review?
+- Which memory records may be stale?
 - What should I avoid touching?
 
 The framework is useful when agents repeatedly modify a codebase across multiple iterations.
@@ -42,7 +43,23 @@ Important claims should be labelled as:
 
 This prevents agents from treating guesses as approved decisions.
 
-### 3. Shared and local memory must be separate
+### 3. Memory should be anchored to commits
+
+State files and change records should include:
+
+```txt
+valid_as_of_commit: COMMIT_SHA
+```
+
+This lets humans or tools detect when related source files changed after the memory record was written.
+
+### 4. Agents should load selectively
+
+Agents should not load every memory file by default.
+
+Use `LOADING_POLICY.md` to decide which project, domain, change, and compaction files are relevant to the task.
+
+### 5. Shared and local memory must be separate
 
 Use:
 
@@ -51,15 +68,15 @@ shared/ = reviewed, team-safe, optionally committed
 local/  = temporary, personal, branch-specific, usually ignored by git
 ```
 
-### 4. Every change should leave a useful trail
+### 6. Every change should leave a useful trail
 
 A change record should explain what changed, why, what was validated, what was not checked, and what risks remain.
 
-### 5. Memory must be compacted
+### 7. Memory must be compacted
 
 Agent history becomes noisy. Compact older records into durable summaries.
 
-### 6. Large systems need domain memory
+### 8. Large systems need domain memory
 
 Large distributed codebases should split memory by domain, service, package, or product area.
 
@@ -89,6 +106,7 @@ When sources conflict, use this priority order:
 .agent_files/
   AGENT_RULES.md
   CONTEXT_PRIORITY.md
+  LOADING_POLICY.md
   PROJECT_STATE.md
 
   docs/
@@ -106,6 +124,7 @@ When sources conflict, use this priority order:
         change.md
         validation.md
         decisions.md
+        provenance.md
         risks.md
         followups.md
 
@@ -124,6 +143,7 @@ When sources conflict, use this priority order:
   README.md
   AGENT_RULES.md
   CONTEXT_PRIORITY.md
+  LOADING_POLICY.md
 
   shared/
     PROJECT_STATE.md
@@ -182,6 +202,7 @@ Commit reviewed files such as:
 .agent_files/README.md
 .agent_files/AGENT_RULES.md
 .agent_files/CONTEXT_PRIORITY.md
+.agent_files/LOADING_POLICY.md
 .agent_files/shared/
 .agent_files/domains/
 .agent_files/templates/
@@ -195,17 +216,36 @@ Keep temporary agent state local:
 
 ---
 
+## Loading policy
+
+The loading policy is the main defense against context-window bloat.
+
+Agents should always read:
+
+1. `CONTEXT_PRIORITY.md`
+2. `AGENT_RULES.md`
+3. `LOADING_POLICY.md`
+4. The relevant project or domain state file
+5. The actual source files involved in the task
+
+Agents should only read relevant domain history, compacted summaries, and decision logs.
+
+They should not automatically read unrelated domains, old change records, archived compactions, or scratch files from unrelated branches.
+
+---
+
 ## Agent workflow
 
 ### Before changing code
 
 1. Read `CONTEXT_PRIORITY.md`.
 2. Read `AGENT_RULES.md`.
-3. Read `PROJECT_STATE.md` or the relevant domain `STATE.md`.
-4. Read `WORKING_STATE.md` if present.
-5. Read the latest relevant change record or compacted summary.
-6. Inspect the actual code.
-7. Treat stale or unverified notes as hints only.
+3. Read `LOADING_POLICY.md` if present.
+4. Read `PROJECT_STATE.md` or the relevant domain `STATE.md`.
+5. Read `WORKING_STATE.md` if present and relevant.
+6. Read the latest relevant change record or compacted summary.
+7. Inspect the actual code.
+8. Treat stale or unverified notes as hints only.
 
 ### While changing code
 
@@ -218,14 +258,74 @@ Keep temporary agent state local:
 
 ### After changing code
 
-1. Create a new change record under `.agent_files/local/changes/`.
+1. Create or update a change record under `.agent_files/local/changes/`.
 2. Record files changed.
-3. Record why changes were made.
-4. Record validation performed.
-5. Record what was not checked.
-6. Record risks and follow-ups.
-7. Update project or domain state if the stable project state changed.
-8. Escalate important changes to official docs or ADRs if needed.
+3. Record touched files.
+4. Record `valid_as_of_commit`.
+5. Record why changes were made.
+6. Record validation performed.
+7. Record what was not checked.
+8. Record risks and follow-ups.
+9. Record provenance if decisions were made.
+10. Update project or domain state if the stable project state changed.
+11. Escalate important changes to official docs or ADRs if needed.
+
+---
+
+## Completion gate
+
+A task that changes code or durable project documentation is not complete until one of these is true:
+
+1. A new change record exists and includes validation, risks, follow-ups, touched files, and commit validity metadata.
+2. An existing change record was updated with the same information.
+3. No change record was needed because no files were changed.
+
+This turns memory writing into a completion condition instead of a nice-to-have side task.
+
+---
+
+## Commit anchoring and staleness
+
+State files and change records should include:
+
+```txt
+valid_as_of_commit: COMMIT_SHA
+```
+
+State files should also include:
+
+```txt
+## Files This State Depends On
+
+- `path/to/file`
+```
+
+Change records should include:
+
+```txt
+## Touched Files
+
+- `path/to/file`
+```
+
+The optional script `scripts/check-staleness.sh` uses these fields to flag memory records that may need review.
+
+---
+
+## Provenance and lineage
+
+Important decisions should record what they were based on.
+
+Track:
+
+- source files inspected
+- state files used
+- ticket or human instructions used
+- assumptions used
+- evidence not checked
+- confidence level
+
+If a decision depends on an assumption, mark that decision as lower confidence or `needs-review`.
 
 ---
 
@@ -260,6 +360,8 @@ Every decision or important observation should be labelled as one of:
 - `temporary`
 - `needs-review`
 
+Do not present assumptions as approved decisions.
+
 ---
 
 ## Handling private or sensitive context
@@ -291,6 +393,18 @@ A compacted summary should include:
 - lessons for future agents
 
 After compaction, update `PROJECT_STATE.md` or the relevant domain `STATE.md`.
+
+---
+
+## Optional staleness check
+
+Run:
+
+```bash
+bash scripts/check-staleness.sh
+```
+
+The script scans `.agent_files` for Markdown records with `valid_as_of_commit` and flags records whose listed files changed after that commit.
 
 ---
 
