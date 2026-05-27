@@ -6,6 +6,10 @@ Plumblines helps AI coding agents preserve project context across sessions, reco
 
 It creates a lightweight memory system inside a project using a `.agent_files/` directory.
 
+**Repo description:** A plain-Markdown project continuity framework for AI coding agents.
+
+**Suggested topics:** `ai-agents`, `coding-agents`, `context-engineering`, `claude-code`, `developer-tools`
+
 ---
 
 ## Why this exists
@@ -66,6 +70,19 @@ See [`docs/v0.2-upgrade-notes.md`](docs/v0.2-upgrade-notes.md).
 
 ---
 
+## What changed in v0.2.1
+
+Plumblines v0.2.1 adds an enforcement gate and deterministic record parser.
+
+New mechanics:
+
+- **Enforcement gate**: `scripts/check-completeness.sh` checks coverage and provenance. Source-touching commits in a configured range must have a change record, and a record's trust cannot exceed the lowest-trust provenance input.
+- **CI/hook wiring**: the completeness gate can run in CI or a pre-push hook. See [`docs/ci-wiring.md`](docs/ci-wiring.md).
+- **YAML frontmatter record schema**: records now put machine-readable metadata in YAML frontmatter. See [`docs/record-schema.md`](docs/record-schema.md).
+- **Shared parser**: both check scripts parse records through `scripts/plumblines-lib.sh`, so staleness and completeness checks do not drift apart.
+
+---
+
 ## Minimal project structure
 
 ```txt
@@ -105,6 +122,7 @@ See [`docs/v0.2-upgrade-notes.md`](docs/v0.2-upgrade-notes.md).
     ARCHITECTURE_SUMMARY.md
     DESIGN_SYSTEM_SUMMARY.md
     API_CONTRACT_SUMMARY.md
+    SECURITY_RULES.md
     DECISION_LOG.md
     KNOWN_RISKS.md
 
@@ -197,11 +215,15 @@ valid_as_of_commit: COMMIT_SHA
 
 This allows stale records to be found when related files change later.
 
-### 4. Agents should load selectively
+### 4. Provenance trust must not escalate
+
+A record's `trust` cannot exceed the lowest `trust` among its provenance inputs. See [`docs/record-schema.md`](docs/record-schema.md).
+
+### 5. Agents should load selectively
 
 Agents should read the relevant domain and latest related records, not the whole `.agent_files/` tree.
 
-### 5. Every change should leave a trail
+### 6. Every change should leave a trail
 
 After modifying a codebase, an agent should record:
 
@@ -213,7 +235,7 @@ After modifying a codebase, an agent should record:
 - follow-ups
 - links to tickets, PRs, branches, or commits
 
-### 6. Memory must be compacted
+### 7. Memory must be compacted
 
 After about 10 change records, or after a large task, compact older notes into a summary.
 
@@ -226,6 +248,8 @@ docs/
   framework.md
   skill.md
   v0.2-upgrade-notes.md
+  record-schema.md
+  ci-wiring.md
 
 templates/
   context-priority.md
@@ -242,7 +266,9 @@ templates/
   compaction.md
 
 scripts/
+  plumblines-lib.sh
   check-staleness.sh
+  check-completeness.sh
 ```
 
 ---
@@ -257,7 +283,8 @@ scripts/
 6. After every meaningful change, ask the agent to create a new change record under `.agent_files/local/changes/`.
 7. Add `valid_as_of_commit` and touched/dependent files to state and change records.
 8. Optionally run `scripts/check-staleness.sh` to flag records that may need review.
-9. Compact older records when the history becomes noisy.
+9. Run `scripts/check-completeness.sh` in CI or a pre-push hook. See [`docs/ci-wiring.md`](docs/ci-wiring.md).
+10. Compact older records when the history becomes noisy.
 
 ---
 
@@ -279,6 +306,16 @@ The script scans `.agent_files` for Markdown records with `valid_as_of_commit` a
 
 ---
 
+## Completeness gate
+
+```bash
+bash scripts/check-completeness.sh origin/main HEAD
+```
+
+The gate enforces that a record exists and that trust labels do not escalate. It does not verify that the prose is accurate; that still needs review.
+
+---
+
 ## Status
 
-Public framework draft, upgraded to v0.2. The structure remains plain Markdown so it works with any coding agent, editor, or repository.
+Public framework draft, upgraded to v0.2.1. The structure remains plain Markdown so it works with any coding agent, editor, or repository.
